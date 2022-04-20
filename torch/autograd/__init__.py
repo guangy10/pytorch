@@ -320,5 +320,8 @@ def _register_py_tensor_class_for_device(device, cls):
         raise RuntimeError("cls isn't a typeinfo object")
     torch._C._register_py_class_for_device(device, cls)
 
-# Fix for FX codgen
-Variable.__module__ = "torch.autograd"
+# Monkey patching variable.Variable to fix FX codegen. FX generates a call by roughly doing
+# f"{fn.__module__}.{fn.__name__}(...). This yields torch.autograd.variable.Variable(...) in the
+# output of an FX graph.  Unfortunately the module name torch.autograd.variable is shadowed by the
+# deprecated function - variable(...).
+variable.Variable = Variable # type: ignore[attr-defined]
